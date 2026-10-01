@@ -1,73 +1,71 @@
-let num;
-function nextRound() {
-  num = Math.floor(Math.random() * 4) + 1;
-  console.log("Random number generated:", num);
+let buttonColours = ["red", "blue", "green", "yellow"];
+let gamePattern = [];
+let userClickedPattern = [];
+let started = false;
+let level = 0;
+
+$(document).keypress(function () {
+  if (!started) {
+    $("#level-title").text("Level " + level);
+    nextSequence();
+    started = true;
+  }
+});
+
+$(".btn").click(function () {
+  let userChosenColour = $(this).attr("id");
+  userClickedPattern.push(userChosenColour);
+  playSound(userChosenColour);
+  animatePress(userChosenColour);
+  checkAnswer(userClickedPattern.length - 1);
+});
+
+function checkAnswer(currentLevel) {
+  if (gamePattern[currentLevel] === userClickedPattern[currentLevel]) {
+    if (userClickedPattern.length === gamePattern.length) {
+      setTimeout(function () {
+        nextSequence();
+      }, 1000);
+    }
+  } else {
+    playSound("wrong");
+    $("body").addClass("game-over");
+    $("#level-title").text("Game Over, Press Any Key to Restart");
+    setTimeout(function () {
+      $("body").removeClass("game-over");
+    }, 200);
+    startOver();
+  }
 }
 
-nextRound();
-
-let yellowSound = new Audio("./sounds/yellow.mp3");
-let redSound = new Audio("./sounds/red.mp3");
-let blueSound = new Audio("./sounds/red.mp3");
-let greenSound = new Audio("./sounds/green.mp3");
-let wrongSound = new Audio("./sounds/wrong.mp3");
-let level = 1;
-
-function restartGame() {
-  level = 1;
-  nextRound();
-  document.getElementById("level-title").textContent = "Level " + level;
+function nextSequence() {
+  userClickedPattern = [];
+  level++;
+  $("#level-title").text("Level " + level);
+  let randomNumber = Math.floor(Math.random() * 4);
+  let randomChosenColour = buttonColours[randomNumber];
+  gamePattern.push(randomChosenColour);
+  $("#" + randomChosenColour)
+    .fadeIn(100)
+    .fadeOut(100)
+    .fadeIn(100);
+  playSound(randomChosenColour);
 }
 
-document.getElementById("green").addEventListener("click", function () {
-  if (num === 1) {
-    level++;
-    document.getElementById("level-title").textContent = "Level " + level;
-    greenSound.play();
-    nextRound();
-  } else {
-    wrongSound.play();
-    alert("Game Over! Press OK to restart.");
-    restartGame();
-  }
-});
-document.getElementById("red").addEventListener("click", function () {
-  if (num === 2) {
-    level++;
-    document.getElementById("level-title").textContent = "Level " + level;
-    redSound.play();
-    nextRound();
-  } else {
-    wrongSound.play();
-    alert("Game Over! Press OK to restart.");
-    restartGame();
-  }
-});
-document.getElementById("yellow").addEventListener("click", function () {
-  if (num === 3) {
-    let sound = new Audio("./sounds/yellow.mp3");
-    sound.play();
+function animatePress(currentColor) {
+  $("#" + currentColor).addClass("pressed");
+  setTimeout(function () {
+    $("#" + currentColor).removeClass("pressed");
+  }, 100);
+}
 
-    nextRound();
-  } else {
-    wrongSound.play();
-    alert("Game Over! Press OK to restart.");
-    restartGame();
-  }
-});
-document.getElementById("blue").addEventListener("click", function () {
-  if (num === 4) {
-    level++;
-    document.getElementById("level-title").textContent = "Level " + level;
-    blueSound.pause();
-    blueSound.currentTime = 0;
-    blueSound.play().catch((error) => {
-      console.error("Blue sound could not be played:", error);
-    });
-    nextRound();
-  } else {
-    wrongSound.play();
-    alert("Game Over! Press OK to restart.");
-    restartGame();
-  }
-});
+function playSound(name) {
+  let audio = new Audio("./sounds/" + name + ".mp3");
+  audio.play();
+}
+
+function startOver() {
+  level = 0;
+  gamePattern = [];
+  started = false;
+}
